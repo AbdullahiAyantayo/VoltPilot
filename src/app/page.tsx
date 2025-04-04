@@ -51,29 +51,6 @@ const features = [
   },
 ];
 
-const testimonials = [
-  {
-    name: 'Sarah Johnson',
-    title: 'Fleet Manager',
-    company: 'Green Logistics Inc.',
-    content: 'VoltPilot has reduced our charging costs by 35% and improved our fleet uptime significantly.',
-    stats: {
-      savings: '35%',
-      uptime: '98%',
-    },
-  },
-  {
-    name: 'Michael Chen',
-    title: 'Operations Director',
-    company: 'Urban Transit Solutions',
-    content: 'The predictive maintenance features have saved us thousands in unexpected repairs.',
-    stats: {
-      savings: '42%',
-      uptime: '99%',
-    },
-  },
-];
-
 const pillars = [
   {
     name: 'Cost Savings',
@@ -116,8 +93,6 @@ const steps = [
 ];
 
 export default function LandingPage() {
-  const [activeTestimonial, setActiveTestimonial] = useState(0);
-
   return (
     <div className="bg-white">
       {/* Hero Section */}
@@ -178,63 +153,6 @@ export default function LandingPage() {
                 <p className="text-gray-600">{feature.description}</p>
               </div>
             ))}
-          </div>
-        </div>
-      </div>
-
-      {/* Visual Proof Section */}
-      <div className="py-24 bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl font-bold text-gray-900 mb-4">
-              Real Results, Real Savings
-            </h2>
-            <p className="text-xl text-gray-600">
-              See how VoltPilot is transforming fleet operations
-            </p>
-          </div>
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-            <div className="space-y-8">
-              {testimonials.map((testimonial, index) => (
-                <div
-                  key={testimonial.name}
-                  className={`bg-gray-50 p-6 rounded-lg ${
-                    activeTestimonial === index ? 'ring-2 ring-[#007bff]' : ''
-                  }`}
-                  onClick={() => setActiveTestimonial(index)}
-                >
-                  <div className="flex items-center mb-4">
-                    <div className="flex-1">
-                      <h4 className="text-lg font-semibold text-gray-900">
-                        {testimonial.name}
-                      </h4>
-                      <p className="text-gray-600">
-                        {testimonial.title}, {testimonial.company}
-                      </p>
-                    </div>
-                    <div className="text-right">
-                      <p className="text-2xl font-bold text-[#39FF14]">
-                        {testimonial.stats.savings}
-                      </p>
-                      <p className="text-sm text-gray-600">Cost Savings</p>
-                    </div>
-                  </div>
-                  <p className="text-gray-700 mb-4">{testimonial.content}</p>
-                  <div className="flex items-center">
-                    <CheckCircleIcon className="h-5 w-5 text-[#39FF14] mr-2" />
-                    <span className="text-gray-600">
-                      {testimonial.stats.uptime} Uptime
-                    </span>
-                  </div>
-                </div>
-              ))}
-            </div>
-            <div className="bg-gray-50 p-8 rounded-lg">
-              {/* Placeholder for charts */}
-              <div className="h-64 bg-white rounded-lg shadow-inner flex items-center justify-center">
-                <p className="text-gray-500">Cost Savings & Uptime Charts</p>
-              </div>
-            </div>
           </div>
         </div>
       </div>

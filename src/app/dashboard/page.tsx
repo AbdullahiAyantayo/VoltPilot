@@ -1,182 +1,312 @@
 'use client';
 
 import { useState } from 'react';
-import { 
-  Battery100Icon, 
-  CurrencyDollarIcon, 
-  GlobeAltIcon, 
+import {
+  TruckIcon,
+  BoltIcon,
   WrenchScrewdriverIcon,
   ChartBarIcon,
-  ClockIcon,
+  ExclamationTriangleIcon,
   ArrowTrendingUpIcon,
-  ExclamationTriangleIcon
+  CurrencyDollarIcon,
+  GlobeAltIcon,
+  ClockIcon,
+  UserIcon,
 } from '@heroicons/react/24/outline';
+import {
+  AreaChart,
+  Area,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+  PieChart,
+  Pie,
+  Cell,
+  BarChart,
+  Bar,
+} from 'recharts';
+import { format } from 'date-fns';
 
-const stats = [
-  { name: 'Total Fleet Status', value: '45/50', icon: Battery100Icon, trend: '+5%', trendPositive: true },
-  { name: 'Cost Savings', value: '$12,450', icon: CurrencyDollarIcon, trend: '+$2,100', trendPositive: true },
-  { name: 'Battery Health', value: '92%', icon: WrenchScrewdriverIcon, trend: '-2%', trendPositive: false },
-  { name: 'Carbon Reduction', value: '2.4t CO2', icon: GlobeAltIcon, trend: '+0.5t', trendPositive: true },
+// Mock data - Replace with real API data
+const overviewData = {
+  vehicles: {
+    total: 42,
+    charging: 15,
+    idle: 20,
+    maintenance: 7,
+  },
+  costSavings: {
+    '24h': 1250,
+    '7d': 8750,
+    '30d': 37500,
+  },
+  carbonReduction: 125, // tons
+  chargerUptime: 98.5, // percentage
+};
+
+const costHeatmapData = [
+  { time: '00:00', Monday: 0.12, Tuesday: 0.11, Wednesday: 0.13, Thursday: 0.12, Friday: 0.11 },
+  { time: '04:00', Monday: 0.10, Tuesday: 0.09, Wednesday: 0.10, Thursday: 0.09, Friday: 0.08 },
+  { time: '08:00', Monday: 0.15, Tuesday: 0.16, Wednesday: 0.15, Thursday: 0.16, Friday: 0.15 },
+  { time: '12:00', Monday: 0.18, Tuesday: 0.19, Wednesday: 0.18, Thursday: 0.19, Friday: 0.18 },
+  { time: '16:00', Monday: 0.20, Tuesday: 0.21, Wednesday: 0.20, Thursday: 0.21, Friday: 0.20 },
+  { time: '20:00', Monday: 0.15, Tuesday: 0.14, Wednesday: 0.15, Thursday: 0.14, Friday: 0.13 },
 ];
 
-const alerts = [
-  { id: 1, type: 'warning', message: 'Battery health below 80% for 3 vehicles', time: '2 hours ago' },
-  { id: 2, type: 'info', message: 'Peak charging hours approaching', time: '1 hour ago' },
-  { id: 3, type: 'success', message: 'Maintenance completed for CS-002', time: '30 minutes ago' },
+const fleetUtilizationData = [
+  { date: '2024-01-01', utilization: 75 },
+  { date: '2024-01-02', utilization: 82 },
+  { date: '2024-01-03', utilization: 78 },
+  { date: '2024-01-04', utilization: 85 },
+  { date: '2024-01-05', utilization: 88 },
+  { date: '2024-01-06', utilization: 90 },
+  { date: '2024-01-07', utilization: 92 },
 ];
 
-const energySources = [
-  { name: 'Solar', percentage: 40, color: 'text-yellow-400' },
-  { name: 'Grid', percentage: 60, color: 'text-gray-400' },
+const maintenanceAlerts = [
+  {
+    id: 1,
+    vehicle: 'Truck-001',
+    issue: 'Battery degradation detected',
+    severity: 'high',
+    predictedDate: '2024-02-15',
+  },
+  {
+    id: 2,
+    vehicle: 'Van-003',
+    issue: 'Charging port wear',
+    severity: 'medium',
+    predictedDate: '2024-03-01',
+  },
 ];
+
+const chargerStatusData = [
+  { name: 'Charging', value: 15 },
+  { name: 'Idle', value: 20 },
+  { name: 'Down', value: 2 },
+];
+
+const v2gData = [
+  { date: '2024-01-01', energy: 150 },
+  { date: '2024-01-02', energy: 180 },
+  { date: '2024-01-03', energy: 200 },
+  { date: '2024-01-04', energy: 170 },
+  { date: '2024-01-05', energy: 190 },
+];
+
+const userActivityLog = [
+  {
+    id: 1,
+    user: 'John Doe',
+    action: 'Scheduled maintenance',
+    timestamp: '2024-01-08T10:30:00',
+  },
+  {
+    id: 2,
+    user: 'Jane Smith',
+    action: 'Updated charging schedule',
+    timestamp: '2024-01-08T09:15:00',
+  },
+];
+
+const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042'];
 
 export default function Dashboard() {
-  const [timeRange, setTimeRange] = useState('today');
+  const [timeRange, setTimeRange] = useState('24h');
 
   return (
-    <div className="space-y-6">
+    <div className="min-h-screen bg-[#2F4F4F] p-6">
       {/* Overview Panel */}
-      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
-        {stats.map((stat) => (
-          <div
-            key={stat.name}
-            className="bg-white overflow-hidden shadow rounded-lg"
-          >
-            <div className="p-5">
-              <div className="flex items-center">
-                <div className="flex-shrink-0">
-                  <stat.icon className="h-6 w-6 text-gray-400" aria-hidden="true" />
-                </div>
-                <div className="ml-5 w-0 flex-1">
-                  <dl>
-                    <dt className="text-sm font-medium text-gray-500 truncate">
-                      {stat.name}
-                    </dt>
-                    <dd className="text-lg font-semibold text-gray-900">
-                      {stat.value}
-                    </dd>
-                    <dd className={`text-sm ${stat.trendPositive ? 'text-green-600' : 'text-red-600'}`}>
-                      {stat.trend}
-                    </dd>
-                  </dl>
-                </div>
-              </div>
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
+        <div className="bg-white p-6 rounded-lg shadow-lg">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-lg font-semibold text-gray-900">Fleet Status</h3>
+            <ChartBarIcon className="h-6 w-6 text-[#007bff]" />
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <p className="text-sm text-gray-600">Total Vehicles</p>
+              <p className="text-2xl font-bold text-gray-900">{overviewData.vehicles.total}</p>
+            </div>
+            <div>
+              <p className="text-sm text-gray-600">Charging</p>
+              <p className="text-2xl font-bold text-[#39FF14]">{overviewData.vehicles.charging}</p>
+            </div>
+            <div>
+              <p className="text-sm text-gray-600">Idle</p>
+              <p className="text-2xl font-bold text-gray-900">{overviewData.vehicles.idle}</p>
+            </div>
+            <div>
+              <p className="text-sm text-gray-600">Maintenance</p>
+              <p className="text-2xl font-bold text-red-500">{overviewData.vehicles.maintenance}</p>
             </div>
           </div>
-        ))}
-      </div>
-
-      {/* Alerts Section */}
-      <div className="bg-white shadow rounded-lg">
-        <div className="px-4 py-5 sm:px-6">
-          <h3 className="text-lg leading-6 font-medium text-gray-900">
-            Recent Alerts
-          </h3>
         </div>
-        <div className="border-t border-gray-200">
-          <ul className="divide-y divide-gray-200">
-            {alerts.map((alert) => (
-              <li key={alert.id} className="px-4 py-4 sm:px-6">
-                <div className="flex items-center">
-                  <ExclamationTriangleIcon className={`h-5 w-5 ${
-                    alert.type === 'warning' ? 'text-yellow-400' :
-                    alert.type === 'info' ? 'text-blue-400' :
-                    'text-green-400'
-                  }`} />
-                  <div className="ml-3">
-                    <p className="text-sm font-medium text-gray-900">{alert.message}</p>
-                    <p className="text-sm text-gray-500">{alert.time}</p>
-                  </div>
-                </div>
-              </li>
-            ))}
-          </ul>
+
+        <div className="bg-white p-6 rounded-lg shadow-lg">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-lg font-semibold text-gray-900">Cost Savings</h3>
+            <BoltIcon className="h-6 w-6 text-[#007bff]" />
+          </div>
+          <div className="space-y-2">
+            <div className="flex justify-between">
+              <span className="text-sm text-gray-600">Last 24h</span>
+              <span className="font-semibold text-[#39FF14]">${overviewData.costSavings['24h']}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-sm text-gray-600">Last 7d</span>
+              <span className="font-semibold text-[#39FF14]">${overviewData.costSavings['7d']}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-sm text-gray-600">Last 30d</span>
+              <span className="font-semibold text-[#39FF14]">${overviewData.costSavings['30d']}</span>
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-white p-6 rounded-lg shadow-lg">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-lg font-semibold text-gray-900">Carbon Reduction</h3>
+            <GlobeAltIcon className="h-6 w-6 text-[#007bff]" />
+          </div>
+          <p className="text-3xl font-bold text-[#39FF14]">{overviewData.carbonReduction}</p>
+          <p className="text-sm text-gray-600">tons of CO2 avoided</p>
+        </div>
+
+        <div className="bg-white p-6 rounded-lg shadow-lg">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-lg font-semibold text-gray-900">Charger Uptime</h3>
+            <ClockIcon className="h-6 w-6 text-[#007bff]" />
+          </div>
+          <p className="text-3xl font-bold text-[#39FF14]">{overviewData.chargerUptime}%</p>
+          <p className="text-sm text-gray-600">average uptime</p>
         </div>
       </div>
 
       {/* Analytics Section */}
-      <div className="bg-white shadow rounded-lg p-6">
-        <div className="flex justify-between items-center mb-6">
-          <h2 className="text-lg font-medium text-gray-900">Analytics</h2>
-          <div className="flex space-x-2">
-            {['today', 'week', 'month'].map((range) => (
-              <button
-                key={range}
-                onClick={() => setTimeRange(range)}
-                className={`px-3 py-1 text-sm rounded-md ${
-                  timeRange === range
-                    ? 'bg-blue-100 text-blue-700'
-                    : 'text-gray-500 hover:bg-gray-100'
-                }`}
-              >
-                {range.charAt(0).toUpperCase() + range.slice(1)}
-              </button>
-            ))}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+        {/* Cost Optimization Heatmap */}
+        <div className="bg-white p-6 rounded-lg shadow-lg">
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">Cost Optimization Heatmap</h3>
+          <div className="h-80">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={costHeatmapData}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="time" />
+                <YAxis />
+                <Tooltip />
+                <Bar dataKey="Monday" fill="#007bff" />
+                <Bar dataKey="Tuesday" fill="#39FF14" />
+                <Bar dataKey="Wednesday" fill="#FFBB28" />
+                <Bar dataKey="Thursday" fill="#FF8042" />
+                <Bar dataKey="Friday" fill="#8884d8" />
+              </BarChart>
+            </ResponsiveContainer>
           </div>
         </div>
 
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-          {/* Cost Optimization Chart */}
-          <div className="bg-gray-50 p-4 rounded-lg">
-            <h3 className="text-sm font-medium text-gray-500 mb-2">
-              Cost Optimization
-            </h3>
-            <div className="h-64 bg-white rounded-md border border-gray-200 p-4">
-              <div className="flex items-center justify-between mb-4">
-                <div>
-                  <p className="text-sm text-gray-500">Peak Hours</p>
-                  <p className="text-lg font-semibold">2:00 PM - 8:00 PM</p>
-                </div>
-                <div>
-                  <p className="text-sm text-gray-500">Off-Peak Savings</p>
-                  <p className="text-lg font-semibold text-green-600">$1,200</p>
-                </div>
-              </div>
-              <div className="h-32 bg-gray-100 rounded">
-                {/* Placeholder for chart */}
-              </div>
-            </div>
+        {/* Fleet Utilization Graph */}
+        <div className="bg-white p-6 rounded-lg shadow-lg">
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">Fleet Utilization</h3>
+          <div className="h-80">
+            <ResponsiveContainer width="100%" height="100%">
+              <AreaChart data={fleetUtilizationData}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="date" />
+                <YAxis />
+                <Tooltip />
+                <Area type="monotone" dataKey="utilization" stroke="#007bff" fill="#007bff" />
+              </AreaChart>
+            </ResponsiveContainer>
           </div>
+        </div>
 
-          {/* Energy Sources */}
-          <div className="bg-gray-50 p-4 rounded-lg">
-            <h3 className="text-sm font-medium text-gray-500 mb-2">
-              Energy Sources
-            </h3>
-            <div className="h-64 bg-white rounded-md border border-gray-200 p-4">
-              <div className="space-y-4">
-                {energySources.map((source) => (
-                  <div key={source.name} className="space-y-2">
-                    <div className="flex justify-between">
-                      <span className="text-sm font-medium text-gray-900">{source.name}</span>
-                      <span className="text-sm text-gray-500">{source.percentage}%</span>
-                    </div>
-                    <div className="w-full bg-gray-200 rounded-full h-2.5">
-                      <div 
-                        className={`h-2.5 rounded-full ${source.color}`}
-                        style={{ width: `${source.percentage}%` }}
-                      ></div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
+        {/* Charger Status Breakdown */}
+        <div className="bg-white p-6 rounded-lg shadow-lg">
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">Charger Status</h3>
+          <div className="h-80">
+            <ResponsiveContainer width="100%" height="100%">
+              <PieChart>
+                <Pie
+                  data={chargerStatusData}
+                  cx="50%"
+                  cy="50%"
+                  labelLine={false}
+                  outerRadius={80}
+                  fill="#8884d8"
+                  dataKey="value"
+                  label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                >
+                  {chargerStatusData.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                  ))}
+                </Pie>
+                <Tooltip />
+              </PieChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+
+        {/* V2G Contribution Graph */}
+        <div className="bg-white p-6 rounded-lg shadow-lg">
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">V2G Contribution</h3>
+          <div className="h-80">
+            <ResponsiveContainer width="100%" height="100%">
+              <AreaChart data={v2gData}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="date" />
+                <YAxis />
+                <Tooltip />
+                <Area type="monotone" dataKey="energy" stroke="#39FF14" fill="#39FF14" />
+              </AreaChart>
+            </ResponsiveContainer>
           </div>
         </div>
       </div>
 
-      {/* Reports Section */}
-      <div className="bg-white shadow rounded-lg p-6">
-        <h2 className="text-lg font-medium text-gray-900 mb-4">Reports</h2>
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          <button className="flex items-center justify-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50">
-            <ChartBarIcon className="h-5 w-5 mr-2" />
-            Export Energy Report
-          </button>
-          <button className="flex items-center justify-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50">
-            <WrenchScrewdriverIcon className="h-5 w-5 mr-2" />
-            Export Maintenance Logs
-          </button>
+      {/* Maintenance Alerts */}
+      <div className="bg-white p-6 rounded-lg shadow-lg mb-6">
+        <h3 className="text-lg font-semibold text-gray-900 mb-4">Maintenance Alerts</h3>
+        <div className="space-y-4">
+          {maintenanceAlerts.map((alert) => (
+            <div
+              key={alert.id}
+              className="flex items-center justify-between p-4 bg-red-50 rounded-lg"
+            >
+              <div>
+                <p className="font-semibold text-gray-900">{alert.vehicle}</p>
+                <p className="text-sm text-gray-600">{alert.issue}</p>
+              </div>
+              <div className="text-right">
+                <p className="text-sm text-gray-600">Predicted: {alert.predictedDate}</p>
+                <span className={`px-2 py-1 rounded text-sm ${
+                  alert.severity === 'high' ? 'bg-red-100 text-red-800' : 'bg-yellow-100 text-yellow-800'
+                }`}>
+                  {alert.severity}
+                </span>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* User Activity Log */}
+      <div className="bg-white p-6 rounded-lg shadow-lg">
+        <h3 className="text-lg font-semibold text-gray-900 mb-4">User Activity Log</h3>
+        <div className="space-y-4">
+          {userActivityLog.map((log) => (
+            <div key={log.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+              <div>
+                <p className="font-semibold text-gray-900">{log.user}</p>
+                <p className="text-sm text-gray-600">{log.action}</p>
+              </div>
+              <p className="text-sm text-gray-600">
+                {format(new Date(log.timestamp), 'MMM d, yyyy HH:mm')}
+              </p>
+            </div>
+          ))}
         </div>
       </div>
     </div>

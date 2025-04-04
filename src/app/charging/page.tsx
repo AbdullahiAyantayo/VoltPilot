@@ -1,232 +1,294 @@
 'use client';
 
 import { useState } from 'react';
-import { 
-  BoltIcon, 
-  ClockIcon, 
+import {
+  BoltIcon,
+  ClockIcon,
+  WrenchScrewdriverIcon,
+  ArrowPathIcon,
   ChartBarIcon,
-  CalendarIcon,
-  SunIcon,
-  CloudIcon,
-  Battery100Icon,
   ExclamationTriangleIcon,
-  ArrowTrendingUpIcon,
-  CurrencyDollarIcon
+  MapPinIcon,
+  CurrencyDollarIcon,
+  GlobeAltIcon,
 } from '@heroicons/react/24/outline';
+import {
+  AreaChart,
+  Area,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+  PieChart,
+  Pie,
+  Cell,
+} from 'recharts';
 
 interface ChargingStation {
   id: string;
   location: string;
-  status: 'Active' | 'Maintenance' | 'Idle';
+  status: 'Available' | 'In Use' | 'Maintenance';
   power: string;
-  currentVehicle: string;
-  estimatedTime: string;
-  utilization: number;
-  costPerKwh: number;
-  energySource: 'Solar' | 'Grid' | 'Hybrid';
+  currentVehicle: string | null;
+  estimatedTime: string | null;
+  health: number;
+  temperature: number;
+  voltage: number;
 }
 
-const chargingStats = [
-  { name: 'Active Stations', value: '12', icon: BoltIcon, trend: '+2', trendPositive: true },
-  { name: 'Currently Charging', value: '8', icon: ClockIcon, trend: '-1', trendPositive: false },
-  { name: 'Average Idle Time', value: '2.5h', icon: ChartBarIcon, trend: '-0.5h', trendPositive: true },
-  { name: 'Utilization Rate', value: '75%', icon: Battery100Icon, trend: '+5%', trendPositive: true },
-];
+interface ElectricityPrice {
+  time: string;
+  price: number;
+}
 
+interface V2GEarning {
+  date: string;
+  earnings: number;
+}
+
+interface ScheduledCharge {
+  id: number;
+  vehicle: string;
+  station: string;
+  startTime: string;
+  endTime: string;
+  estimatedCost: number;
+}
+
+// Mock data - Replace with real API data
 const chargingStations: ChargingStation[] = [
   {
-    id: 'CS001',
-    location: 'Main Depot',
-    status: 'Active',
+    id: 'CS-001',
+    location: 'Depot A',
+    status: 'Available',
     power: '150kW',
-    currentVehicle: 'VH001',
+    currentVehicle: null,
+    estimatedTime: null,
+    health: 95,
+    temperature: 32,
+    voltage: 480,
+  },
+  {
+    id: 'CS-002',
+    location: 'Depot A',
+    status: 'In Use',
+    power: '150kW',
+    currentVehicle: 'Truck-001',
     estimatedTime: '45 min',
-    utilization: 85,
-    costPerKwh: 0.12,
-    energySource: 'Hybrid',
+    health: 92,
+    temperature: 35,
+    voltage: 480,
   },
   {
-    id: 'CS002',
-    location: 'North Station',
+    id: 'CS-003',
+    location: 'Depot B',
     status: 'Maintenance',
-    power: '100kW',
-    currentVehicle: 'None',
-    estimatedTime: 'N/A',
-    utilization: 65,
-    costPerKwh: 0.15,
-    energySource: 'Grid',
+    power: '150kW',
+    currentVehicle: null,
+    estimatedTime: null,
+    health: 85,
+    temperature: 38,
+    voltage: 475,
+  },
+];
+
+const electricityPrices: ElectricityPrice[] = [
+  { time: '00:00', price: 0.12 },
+  { time: '04:00', price: 0.10 },
+  { time: '08:00', price: 0.15 },
+  { time: '12:00', price: 0.18 },
+  { time: '16:00', price: 0.20 },
+  { time: '20:00', price: 0.15 },
+];
+
+const v2gEarnings: V2GEarning[] = [
+  { date: '2024-01-01', earnings: 150 },
+  { date: '2024-01-02', earnings: 180 },
+  { date: '2024-01-03', earnings: 200 },
+  { date: '2024-01-04', earnings: 170 },
+  { date: '2024-01-05', earnings: 190 },
+];
+
+const scheduledCharges: ScheduledCharge[] = [
+  {
+    id: 1,
+    vehicle: 'Truck-001',
+    station: 'CS-002',
+    startTime: '2024-01-08T14:00:00',
+    endTime: '2024-01-08T15:00:00',
+    estimatedCost: 45,
   },
   {
-    id: 'CS003',
-    location: 'Solar Farm',
-    status: 'Active',
-    power: '200kW',
-    currentVehicle: 'VH002',
-    estimatedTime: '1h 30min',
-    utilization: 90,
-    costPerKwh: 0.08,
-    energySource: 'Solar',
+    id: 2,
+    vehicle: 'Van-003',
+    station: 'CS-001',
+    startTime: '2024-01-08T16:00:00',
+    endTime: '2024-01-08T17:00:00',
+    estimatedCost: 35,
   },
 ];
 
-const energySources = [
-  { name: 'Solar', percentage: 40, color: 'text-yellow-400', cost: '$0.08/kWh' },
-  { name: 'Grid', percentage: 60, color: 'text-gray-400', cost: '$0.15/kWh' },
-];
+const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042'];
 
-const chargingSchedule = [
-  { time: '6:00 AM - 2:00 PM', type: 'Morning Shift', vehicles: 8, cost: '$0.10/kWh' },
-  { time: '2:00 PM - 10:00 PM', type: 'Evening Shift', vehicles: 12, cost: '$0.18/kWh' },
-  { time: '10:00 PM - 6:00 AM', type: 'Night Shift', vehicles: 5, cost: '$0.08/kWh' },
-];
-
-export default function Charging() {
-  const [selectedStation, setSelectedStation] = useState<ChargingStation | null>(null);
-  const [selectedTimeRange, setSelectedTimeRange] = useState('today');
+export default function ChargingPage() {
+  const [selectedStation, setSelectedStation] = useState<ChargingStation>(chargingStations[0]);
 
   return (
-    <div className="space-y-6">
+    <div className="min-h-screen bg-[#2F4F4F] p-6">
       {/* Charging Infrastructure Overview */}
-      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
-        {chargingStats.map((stat) => (
-          <div
-            key={stat.name}
-            className="bg-white overflow-hidden shadow rounded-lg"
-          >
-            <div className="p-5">
-              <div className="flex items-center">
-                <div className="flex-shrink-0">
-                  <stat.icon className="h-6 w-6 text-gray-400" aria-hidden="true" />
-                </div>
-                <div className="ml-5 w-0 flex-1">
-                  <dl>
-                    <dt className="text-sm font-medium text-gray-500 truncate">
-                      {stat.name}
-                    </dt>
-                    <dd className="text-lg font-semibold text-gray-900">
-                      {stat.value}
-                    </dd>
-                    <dd className={`text-sm ${stat.trendPositive ? 'text-green-600' : 'text-red-600'}`}>
-                      {stat.trend}
-                    </dd>
-                  </dl>
-                </div>
-              </div>
-            </div>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+        <div className="bg-white p-6 rounded-lg shadow-lg">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-lg font-semibold text-gray-900">Active Stations</h3>
+            <BoltIcon className="h-6 w-6 text-[#007bff]" />
           </div>
-        ))}
+          <p className="text-3xl font-bold text-[#39FF14]">
+            {chargingStations.filter(station => station.status === 'Available' || station.status === 'In Use').length}
+          </p>
+          <p className="text-sm text-gray-600">out of {chargingStations.length} total stations</p>
+        </div>
+
+        <div className="bg-white p-6 rounded-lg shadow-lg">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-lg font-semibold text-gray-900">Currently Charging</h3>
+            <ClockIcon className="h-6 w-6 text-[#007bff]" />
+          </div>
+          <p className="text-3xl font-bold text-[#39FF14]">
+            {chargingStations.filter(station => station.status === 'In Use').length}
+          </p>
+          <p className="text-sm text-gray-600">vehicles being charged</p>
+        </div>
+
+        <div className="bg-white p-6 rounded-lg shadow-lg">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-lg font-semibold text-gray-900">Average Idle Time</h3>
+            <ArrowPathIcon className="h-6 w-6 text-[#007bff]" />
+          </div>
+          <p className="text-3xl font-bold text-[#39FF14]">2.5</p>
+          <p className="text-sm text-gray-600">hours per day</p>
+        </div>
       </div>
 
       {/* Charging Stations List */}
-      <div className="bg-white shadow rounded-lg">
-        <div className="px-4 py-5 sm:px-6">
-          <h3 className="text-lg leading-6 font-medium text-gray-900">
-            Charging Stations
-          </h3>
-        </div>
-        <div className="border-t border-gray-200">
-          <ul className="divide-y divide-gray-200">
-            {chargingStations.map((station) => (
-              <li 
-                key={station.id} 
-                className="px-4 py-4 sm:px-6 hover:bg-gray-50 cursor-pointer"
-                onClick={() => setSelectedStation(station)}
-              >
-                <div className="flex items-center justify-between">
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-blue-600 truncate">
-                      {station.id}
-                    </p>
-                    <p className="text-sm text-gray-500">
-                      {station.location}
-                    </p>
-                    <p className="text-sm text-gray-500">
-                      Energy Source: {station.energySource}
-                    </p>
-                  </div>
-                  <div className="flex items-center space-x-4">
-                    <div className="flex flex-col items-end">
-                      <span className="text-sm text-gray-500">
-                        Power: {station.power}
-                      </span>
-                      <span className="text-sm text-gray-500">
-                        Cost: ${station.costPerKwh}/kWh
-                      </span>
-                      <span className="text-sm text-gray-500">
-                        Utilization: {station.utilization}%
-                      </span>
-                    </div>
-                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                      station.status === 'Active'
-                        ? 'bg-green-100 text-green-800'
-                        : station.status === 'Maintenance'
-                        ? 'bg-red-100 text-red-800'
-                        : 'bg-yellow-100 text-yellow-800'
-                    }`}>
-                      {station.status}
-                    </span>
-                  </div>
+      <div className="bg-white p-6 rounded-lg shadow-lg mb-6">
+        <h3 className="text-lg font-semibold text-gray-900 mb-4">Charging Stations</h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {chargingStations.map((station) => (
+            <div
+              key={station.id}
+              className={`p-4 rounded-lg border ${
+                station.status === 'Available' ? 'border-green-200 bg-green-50' :
+                station.status === 'In Use' ? 'border-blue-200 bg-blue-50' :
+                'border-red-200 bg-red-50'
+              }`}
+              onClick={() => setSelectedStation(station)}
+            >
+              <div className="flex justify-between items-start">
+                <div>
+                  <p className="font-semibold text-gray-900">{station.id}</p>
+                  <p className="text-sm text-gray-600">{station.location}</p>
                 </div>
-              </li>
-            ))}
-          </ul>
+                <span className={`px-2 py-1 text-xs font-semibold rounded-full ${
+                  station.status === 'Available' ? 'bg-green-100 text-green-800' :
+                  station.status === 'In Use' ? 'bg-blue-100 text-blue-800' :
+                  'bg-red-100 text-red-800'
+                }`}>
+                  {station.status}
+                </span>
+              </div>
+              <div className="mt-4 space-y-2">
+                <p className="text-sm text-gray-600">Power: {station.power}</p>
+                {station.currentVehicle && (
+                  <p className="text-sm text-gray-600">
+                    Vehicle: {station.currentVehicle}
+                  </p>
+                )}
+                {station.estimatedTime && (
+                  <p className="text-sm text-gray-600">
+                    Time remaining: {station.estimatedTime}
+                  </p>
+                )}
+              </div>
+            </div>
+          ))}
         </div>
       </div>
 
-      {/* Scheduling Interface */}
-      <div className="bg-white shadow rounded-lg">
-        <div className="px-4 py-5 sm:px-6">
-          <h3 className="text-lg leading-6 font-medium text-gray-900">
-            Charging Schedule
-          </h3>
-        </div>
-        <div className="border-t border-gray-200 px-4 py-5 sm:px-6">
-          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
-            <div>
-              <h4 className="text-sm font-medium text-gray-500 mb-4">
-                Today's Schedule
-              </h4>
-              <div className="space-y-4">
-                {chargingSchedule.map((schedule) => (
-                  <div key={schedule.time} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                    <div className="flex items-center">
-                      <CalendarIcon className="h-5 w-5 text-gray-400 mr-2" />
-                      <div>
-                        <p className="text-sm font-medium text-gray-900">{schedule.time}</p>
-                        <p className="text-sm text-gray-500">{schedule.type}</p>
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <p className="text-sm font-medium text-gray-900">{schedule.vehicles} vehicles</p>
-                      <p className="text-sm text-gray-500">{schedule.cost}</p>
-                    </div>
-                  </div>
-                ))}
+      {/* Selected Station Details */}
+      {selectedStation && (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+          {/* Station Health Metrics */}
+          <div className="bg-white p-6 rounded-lg shadow-lg">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">Station Health</h3>
+            <div className="grid grid-cols-3 gap-4">
+              <div className="p-4 bg-gray-50 rounded-lg">
+                <p className="text-sm text-gray-600">Health</p>
+                <p className="text-2xl font-bold text-[#39FF14]">{selectedStation.health}%</p>
               </div>
-            </div>
-            <div>
-              <h4 className="text-sm font-medium text-gray-500 mb-4">
-                Energy Sources
-              </h4>
-              <div className="space-y-4">
-                {energySources.map((source) => (
-                  <div key={source.name} className="space-y-2">
-                    <div className="flex justify-between">
-                      <span className="text-sm font-medium text-gray-900">{source.name}</span>
-                      <span className="text-sm text-gray-500">{source.percentage}%</span>
-                    </div>
-                    <div className="w-full bg-gray-200 rounded-full h-2.5">
-                      <div 
-                        className={`h-2.5 rounded-full ${source.color}`}
-                        style={{ width: `${source.percentage}%` }}
-                      ></div>
-                    </div>
-                    <p className="text-sm text-gray-500">{source.cost}</p>
-                  </div>
-                ))}
+              <div className="p-4 bg-gray-50 rounded-lg">
+                <p className="text-sm text-gray-600">Temperature</p>
+                <p className="text-2xl font-bold text-[#39FF14]">{selectedStation.temperature}°C</p>
+              </div>
+              <div className="p-4 bg-gray-50 rounded-lg">
+                <p className="text-sm text-gray-600">Voltage</p>
+                <p className="text-2xl font-bold text-[#39FF14]">{selectedStation.voltage}V</p>
               </div>
             </div>
           </div>
+
+          {/* Electricity Prices */}
+          <div className="bg-white p-6 rounded-lg shadow-lg">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">Electricity Prices</h3>
+            <div className="h-64">
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart data={electricityPrices}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="time" />
+                  <YAxis />
+                  <Tooltip />
+                  <Area type="monotone" dataKey="price" stroke="#007bff" fill="#007bff" />
+                </AreaChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Scheduled Charges */}
+      <div className="bg-white p-6 rounded-lg shadow-lg mb-6">
+        <h3 className="text-lg font-semibold text-gray-900 mb-4">Scheduled Charges</h3>
+        <div className="space-y-4">
+          {scheduledCharges.map((schedule) => (
+            <div key={schedule.id} className="flex justify-between items-center p-4 bg-gray-50 rounded-lg">
+              <div>
+                <p className="font-semibold text-gray-900">{schedule.vehicle}</p>
+                <p className="text-sm text-gray-600">Station: {schedule.station}</p>
+              </div>
+              <div className="text-right">
+                <p className="text-sm text-gray-600">
+                  {new Date(schedule.startTime).toLocaleTimeString()} - {new Date(schedule.endTime).toLocaleTimeString()}
+                </p>
+                <p className="text-sm font-medium text-gray-900">Est. Cost: ${schedule.estimatedCost}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* V2G Earnings */}
+      <div className="bg-white p-6 rounded-lg shadow-lg">
+        <h3 className="text-lg font-semibold text-gray-900 mb-4">V2G Earnings</h3>
+        <div className="h-64">
+          <ResponsiveContainer width="100%" height="100%">
+            <AreaChart data={v2gEarnings}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="date" />
+              <YAxis />
+              <Tooltip />
+              <Area type="monotone" dataKey="earnings" stroke="#39FF14" fill="#39FF14" />
+            </AreaChart>
+          </ResponsiveContainer>
         </div>
       </div>
     </div>
