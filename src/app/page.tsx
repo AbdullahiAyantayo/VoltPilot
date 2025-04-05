@@ -233,8 +233,8 @@ export default function LandingPage() {
             </div>
             <div>
               <h3 className="text-lg font-semibold mb-4">Contact</h3>
-              <p className="text-gray-300">info@voltpilot.com</p>
-              <p className="text-gray-300">+1 (555) 123-4567</p>
+              <p className="text-gray-300">abdullahiayantayo@gmail.com</p>
+              <p className="text-gray-300">+1 313 209 2456</p>
             </div>
             <div>
               <h3 className="text-lg font-semibold mb-4">Legal</h3>
