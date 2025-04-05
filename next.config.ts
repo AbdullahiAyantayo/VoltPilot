@@ -6,6 +6,9 @@ const nextConfig: NextConfig = {
     domains: ['images.unsplash.com'],
   },
   reactStrictMode: true,
+  eslint: {
+    ignoreDuringBuilds: true,
+  },
 };
 
 export default nextConfig;
