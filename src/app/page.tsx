@@ -254,14 +254,11 @@ export default function LandingPage() {
             <div>
               <h3 className="text-lg font-semibold mb-4">Follow Us</h3>
               <div className="flex space-x-4">
-                <a href="#" className="text-gray-300 hover:text-white">
-                  Twitter
-                </a>
-                <a href="#" className="text-gray-300 hover:text-white">
-                  LinkedIn
-                </a>
-                <a href="#" className="text-gray-300 hover:text-white">
+                <a href="https://github.com/AbdullahiAyantayo" target="_blank" rel="noopener noreferrer" className="text-gray-300 hover:text-white">
                   GitHub
+                </a>
+                <a href="https://www.linkedin.com/in/abdullahi-ayantayo" target="_blank" rel="noopener noreferrer" className="text-gray-300 hover:text-white">
+                  LinkedIn
                 </a>
               </div>
             </div>
